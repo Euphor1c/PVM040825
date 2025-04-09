@@ -925,16 +925,31 @@ else:
 # Top/Bottom N Viz
 st.subheader(f"Top/Bottom {AGGREGATION_LEVEL} Contributors by Net Factor Impact")
 if not item_factor_df.empty and 'Net_Impact' in item_factor_df.columns and 'Factor' in item_factor_df.columns:
-    # ... (Top/Bottom N viz logic - simplified) ...
+    # Define the factors you want to visualize. For example, "Price", "Volume", and "Mix".
     factors_for_viz = ["Price", "Volume", "Mix", "New_Items", "Discontinued_Items"]
     valid_factors_viz = [f for f in factors_for_viz if f in item_factor_df['Factor'].unique()]
     if valid_factors_viz:
+        # Let the user select which factor to visualize.
         selected_factor = st.selectbox("Select Factor", valid_factors_viz, key="viz_factor_sel")
-        # ... (rest of viz logic) ...
-    else: 
-        st.warning("No PVM factors for viz.")
-else: 
-    st.warning("Item factor summary data unavailable for viz.")
+        top_n = st.number_input("Number of Top Contributors", min_value=1, value=10, step=1, key="top_n")
+        bottom_n = st.number_input("Number of Bottom Contributors", min_value=1, value=10, step=1, key="bottom_n")
+        
+        # Filter the summary for the selected factor.
+        df_selected = item_factor_df[item_factor_df['Factor'] == selected_factor]
+        
+        # Sort descending for top contributors and ascending for bottom contributors.
+        df_top = df_selected.sort_values(by="Net_Impact", ascending=False).head(top_n)
+        df_bottom = df_selected.sort_values(by="Net_Impact", ascending=True).head(bottom_n)
+        
+        st.write(f"### Top {top_n} Contributors for {selected_factor}")
+        st.dataframe(df_top)
+        st.write(f"### Bottom {bottom_n} Contributors for {selected_factor}")
+        st.dataframe(df_bottom)
+    else:
+        st.warning("No valid factors found for visualization.")
+else:
+    st.warning("Item factor summary data unavailable for visualization.")
+
 
 # Downloads
 st.header("Downloads")
